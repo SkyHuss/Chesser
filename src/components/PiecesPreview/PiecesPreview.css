@@ -1,0 +1,11 @@
+.pieces-preview-container {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-around;
+    padding: 10px;
+}
+
+.pieces-preview-container img {
+    width: 80px;
+    height: 80px;
+}
