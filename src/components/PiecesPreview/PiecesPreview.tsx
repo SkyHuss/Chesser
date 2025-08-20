@@ -1,19 +1,17 @@
+import type { Color } from '../../types/piece';
 import './PiecesPreview.css';
 
 type PiecesPreviewProps = {
-    isWhite: string;
+    color: Color;
 };
 
-export default function PiecesPreview({ isWhite }: PiecesPreviewProps) {
-
-    const pieceColor = isWhite === 'true' ? 'white' : 'black';
-
+export default function PiecesPreview({ color }: PiecesPreviewProps) {
     return <div className="pieces-preview-container">
-        <img src={`/assets/pieces/${pieceColor}/king.png`} alt="piece" />
-        <img src={`/assets/pieces/${pieceColor}/queen.png`} alt="piece" />
-        <img src={`/assets/pieces/${pieceColor}/bishop.png`} alt="piece" />
-        <img src={`/assets/pieces/${pieceColor}/knight.png`} alt="piece" />
-        <img src={`/assets/pieces/${pieceColor}/rook.png`} alt="piece" />
-        <img src={`/assets/pieces/${pieceColor}/pawn.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/king.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/queen.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/bishop.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/knight.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/rook.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/pawn.png`} alt="piece" />
     </div>
 }

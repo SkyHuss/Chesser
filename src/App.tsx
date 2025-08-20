@@ -9,9 +9,9 @@ export default function App() {
   const {isGameStarted} = useChessStore();
 
   return <div className='app-container'>
-      {!isGameStarted && <PiecesPreview isWhite="true" />}
+      {!isGameStarted && <PiecesPreview color="white" />}
       <Chessboard/>
-      {!isGameStarted && <PiecesPreview isWhite="false" />}
+      {!isGameStarted && <PiecesPreview color="black" />}
 
       {isGameStarted && 
         <button className="stop-game-button" onClick={globalStopGame}>Stop Game</button>
