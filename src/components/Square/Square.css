@@ -1,3 +1,19 @@
 .square {
-    color: red;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.square span {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 100%;
+}
+
+.square span img {
+    width: 70%;
+    height: 70%;
+    object-fit: cover;
 }

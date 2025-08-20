@@ -69,10 +69,14 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
     startGame: () => {
         set({
             isGameStarted: true,
-            board: initialEmptyBoard(),
+            board:fenToBoard(STARTING_FEN),
             selectedSquare: null,
             currentTurn: "white"
         })
+
+        console.log(get().isGameStarted)
+        console.log(get().board)
+        console.log(get().currentTurn)
     },
     stopGame: () => {
         set({
