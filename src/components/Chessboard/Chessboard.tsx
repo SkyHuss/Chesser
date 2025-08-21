@@ -1,23 +1,11 @@
 import { globalStartGame, useChessStore } from '../../hooks/useChessStore';
+import { indexToCoord } from '../../utils/utils';
 import Square from '../Square/Square';
 import './Chessboard.css'
 
 export default function Chessboard() {
 
     const {isGameStarted} = useChessStore();
-
-    const files = 'abcdefgh';
-
-    const indexToCoord = (index: number) => {
-        const row = Math.floor(index / 8);
-        const col = index % 8;
-        const file = files[col];
-        const rank = 8 - row;
-        const coord = `${file}${rank}`;
-        const isDarkSquare = (row + col) % 2 === 1;
-
-        return { index, row, col, file, rank, coord, isDarkSquare};
-    }
 
 
     const renderSquare = (i: number) => {

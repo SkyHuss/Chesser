@@ -5,16 +5,19 @@
   align-items: center;
   justify-content: center;
   position: relative;
-
 }
 
-.app-container .stop-game-button {
+.app-container .actions-btn-container {
   position: absolute;
   bottom: 20px;
   right: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.app-container .actions-btn-container .btn {
   padding: 12px 24px;
-  background-color: #b52727;
-  color: white;
   font-weight: bold;
   font-size: 20px;
   border: none;
@@ -24,6 +27,20 @@
   transition: all 0.3s;
 }
 
-.app-container .stop-game-button:hover {
+.app-container .actions-btn-container .btn.stop-game-button {
+  background-color: #b52727;
+  color: white;
+}
+
+.app-container .actions-btn-container .btn.stop-game-button:hover {
   background-color: #d9534f;
+}
+
+.app-container .actions-btn-container .btn.reset-button {
+  background-color: #ffffff;
+  color: black;
+}
+
+.app-container .actions-btn-container .btn.reset-button:hover {
+  background-color: #e6e6e6;
 }

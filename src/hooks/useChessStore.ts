@@ -84,7 +84,6 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
         })
     },
 
-
     //TODO: check
     resetBoard: () => {
         set({ board: fenToBoard(STARTING_FEN), selectedSquare: null, currentTurn: 'white' });

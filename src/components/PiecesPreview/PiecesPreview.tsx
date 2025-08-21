@@ -11,7 +11,7 @@ export default function PiecesPreview({ color }: PiecesPreviewProps) {
         <img src={`/assets/pieces/${color}/queen.png`} alt="piece" />
         <img src={`/assets/pieces/${color}/bishop.png`} alt="piece" />
         <img src={`/assets/pieces/${color}/knight.png`} alt="piece" />
-        <img src={`/assets/pieces/${color}/rook.png`} alt="piece" />
+        <img src={`/assets/pieces/${color}/rock.png`} alt="piece" />
         <img src={`/assets/pieces/${color}/pawn.png`} alt="piece" />
     </div>
 }

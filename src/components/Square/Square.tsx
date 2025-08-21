@@ -23,6 +23,9 @@ export default function Square({ index, coord, file, rank, isDarkSquare }: Squar
     const isSelected = selectedSquare === index;
     const legalMoves = selectedSquare != null ? legalMovesFrom(selectedSquare) : [];
     const isMoveTarget = legalMoves.includes(index);
+    const selectedPiece = selectedSquare != null ? board?.[selectedSquare] ?? null : null;
+    const targetPiece = board?.[index] ?? null;
+    const isCaptureTarget = isMoveTarget && selectedPiece !== null && targetPiece !== null && selectedPiece.color !== targetPiece.color;
 
     const glyphs: Record<string, Record<string, string>> = {
         white: { king: '♔', queen: '♕', rock: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
@@ -57,7 +60,7 @@ export default function Square({ index, coord, file, rank, isDarkSquare }: Squar
         'square',
         isDarkSquare ? 'dark' : 'light',
         isSelected ? 'selected' : '',
-        isMoveTarget ? 'move-target' : ''
+    isCaptureTarget ? 'capture-target' : (isMoveTarget ? 'move-target' : '')
     ].join(' ').trim();
 
     return (

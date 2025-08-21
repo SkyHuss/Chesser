@@ -6,7 +6,7 @@ import { globalStopGame, useChessStore } from './hooks/useChessStore';
 
 export default function App() {
 
-  const {isGameStarted} = useChessStore();
+  const {isGameStarted, resetBoard} = useChessStore();
 
   return <div className='app-container'>
       {!isGameStarted && <PiecesPreview color="white" />}
@@ -14,7 +14,10 @@ export default function App() {
       {!isGameStarted && <PiecesPreview color="black" />}
 
       {isGameStarted && 
-        <button className="stop-game-button" onClick={globalStopGame}>Stop Game</button>
+        <div className="actions-btn-container">
+          <button className="btn reset-button" onClick={resetBoard}>Reset game</button>
+          <button className="btn stop-game-button" onClick={globalStopGame}>Stop Game</button>
+        </div>
       }
   </div>
 }

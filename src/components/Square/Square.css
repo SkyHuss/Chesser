@@ -2,6 +2,7 @@
     display: flex;
     align-items: center;
     justify-content: center;
+    position: relative;
 }
 
 .square span {
@@ -16,4 +17,46 @@
     width: 70%;
     height: 70%;
     object-fit: cover;
+    margin-left: -2px;
+}
+
+/* visual indicator for legal move targets: small centered dot */
+.square.move-target::after {
+    content: '';
+    position: absolute;
+    width: 28%;
+    height: 28%;
+    border-radius: 50%;
+    background: rgba(201, 201, 201, 0.9);
+    opacity: 0.95;
+    pointer-events: none;
+    display: block;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 1; 
+}
+
+/* capture target: red ring/dot to indicate a capture move */
+.square.capture-target::after {
+    content: '';
+    position: absolute;
+    width: 90%;
+    height: 90%;
+    border-radius: 50%;
+    background: rgba(231, 76, 60, 0.95);
+    opacity: 1;
+    pointer-events: none;
+    display: block;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 8px rgba(231, 76, 60, 0.45);
+    z-index: 0;
+}
+
+/* make piece image appear above the indicator */
+.square span {
+    position: relative;
+    z-index: 1;
 }
