@@ -1,6 +1,12 @@
 import { create } from "zustand";
 import type { Color, Piece, PieceType } from "../types/piece";
 
+// audio for moves
+import moveSoundSrc from '../assets/chess-move.mp3';
+
+// cached audio element (module-scoped to avoid attaching to hook)
+let moveAudio: HTMLAudioElement | null = null;
+
 
 
 interface ChessStore {
@@ -105,6 +111,19 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
         newBoard[from] = null;
         const nextTurn: Color = get().currentTurn === 'white' ? 'black' : 'white';
         set({ board: newBoard, selectedSquare: null, currentTurn: nextTurn });
+
+        // play sound: reuse Audio element to avoid reloading
+        try {
+            if (!moveAudio) moveAudio = new Audio(moveSoundSrc);
+            moveAudio.playbackRate = 1.0;
+            moveAudio.volume = 0.6;
+            
+            moveAudio.currentTime = 0.4;
+            // play returns a promise; ignore it but avoid uncaught
+            moveAudio.play().catch(() => { /* ignore autoplay errors */ });
+        } catch {
+            // ignore audio errors
+        }
     },
 
     //TODO: check
@@ -166,6 +185,7 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
 
             // TODO: implement other piece types (n, b, q, k)
             default:
+                //Todo: launch piece sound in assets
                 break;
         }
 
