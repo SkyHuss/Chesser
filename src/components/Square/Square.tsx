@@ -1,15 +1,14 @@
 import './Square.css'
 import { useChessStore } from '../../hooks/useChessStore'
+import { isSquareAttacked } from '../../utils/moves'
 
 type SquareProps = {
     index: number;
     coord: string;
-    file: string;
-    rank: number;
     isDarkSquare: boolean;
 }
 
-export default function Square({ index, coord, file, rank, isDarkSquare }: SquareProps) {
+export default function Square({ index, coord, isDarkSquare }: SquareProps) {
     const {
         board,
         selectedSquare,
@@ -26,6 +25,9 @@ export default function Square({ index, coord, file, rank, isDarkSquare }: Squar
     const selectedPiece = selectedSquare != null ? board?.[selectedSquare] ?? null : null;
     const targetPiece = board?.[index] ?? null;
     const isCaptureTarget = isMoveTarget && selectedPiece !== null && targetPiece !== null && selectedPiece.color !== targetPiece.color;
+
+    // indicate if the king on this square is currently in check
+    const isKingInCheck = piece && piece.type === 'king' ? isSquareAttacked(board ?? [], index, piece.color === 'white' ? 'black' : 'white') : false;
 
     const glyphs: Record<string, Record<string, string>> = {
         white: { king: '♔', queen: '♕', rock: '♖', bishop: '♗', knight: '♘', pawn: '♙' },
@@ -60,7 +62,8 @@ export default function Square({ index, coord, file, rank, isDarkSquare }: Squar
         'square',
         isDarkSquare ? 'dark' : 'light',
         isSelected ? 'selected' : '',
-    isCaptureTarget ? 'capture-target' : (isMoveTarget ? 'move-target' : '')
+    isCaptureTarget ? 'capture-target' : (isMoveTarget ? 'move-target' : ''),
+    isKingInCheck ? 'in-check' : ''
     ].join(' ').trim();
 
     return (

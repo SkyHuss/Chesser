@@ -126,3 +126,99 @@ export const pushIfEnemyOrEmpty = (i: number,piece: Piece, board: (Piece| null )
     }
     return false; // blocked
 };
+
+// returns true if `square` is attacked by any piece of color `byColor` on given board
+export const isSquareAttacked = (board: (Piece|null)[], square: number, byColor: string) => {
+    if (!inBounds(square)) return false;
+    // pawn attacks
+    for (let i = 0; i < 64; i++) {
+        const p = board[i];
+        if (!p || p.color !== byColor) continue;
+        const type = p.type;
+        if (type === 'pawn') {
+            const dir = p.color === 'white' ? -8 : 8;
+            const a1 = i + dir - 1;
+            const a2 = i + dir + 1;
+            if (a1 === square || a2 === square) return true;
+            continue;
+        }
+        if (type === 'knight') {
+            const deltas = [-17, -15, -10, -6, 6, 10, 15, 17];
+            for (const d of deltas) {
+                const t = i + d;
+                if (!inBounds(t)) continue;
+                // validate actual L-shape
+                const tr = getRow(t);
+                const tc = getCol(t);
+                const rowDiff = Math.abs(tr - getRow(i));
+                const colDiff = Math.abs(tc - getCol(i));
+                if (!((rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2))) continue;
+                if (t === square) return true;
+            }
+            continue;
+        }
+        if (type === 'bishop' || type === 'rock' || type === 'queen') {
+            const dirs: number[] = [];
+            if (type === 'bishop') dirs.push(-9, -7, 7, 9);
+            else if (type === 'rock') dirs.push(-8, -1, 1, 8);
+            else dirs.push(-9, -8, -7, -1, 1, 7, 8, 9);
+
+            for (const d of dirs) {
+                let t = i + d;
+                while (inBounds(t)) {
+                    // wrap prevention
+                    if ((d === -1 || d === 1) && getRow(t) !== getRow(t - d)) break;
+                    if ((d === -9 || d === -7 || d === 7 || d === 9) && Math.abs(getCol(t) - getCol(t - d)) !== 1) break;
+                    if (t === square) return true;
+                    if (board[t] !== null) break;
+                    t += d;
+                }
+            }
+            continue;
+        }
+        if (type === 'king') {
+            const dirs = [-9, -8, -7, -1, 1, 7, 8, 9];
+            for (const d of dirs) {
+                const t = i + d;
+                if (!inBounds(t)) continue;
+                if ((d === -1 || d === 1) && getRow(t) !== getRow(i)) continue;
+                if ((d === -9 || d === -7 || d === 7 || d === 9) && Math.abs(getCol(t) - getCol(i)) !== 1) continue;
+                if (t === square) return true;
+            }
+            continue;
+        }
+    }
+    return false;
+}
+
+// filters out moves that would leave `from` player's king in check
+export const filterLegalMoves = (board: (Piece|null)[], from: number, moves: number[]) => {
+    const piece = board[from];
+    if (!piece) return [];
+    const color = piece.color;
+    const opponent = color === 'white' ? 'black' : 'white';
+    const legal: number[] = [];
+
+    for (const to of moves) {
+        const newBoard = board.slice();
+        newBoard[to] = piece;
+        newBoard[from] = null;
+
+        // find king position for color
+        let kingIndex = -1;
+        if (piece.type === 'king') {
+            kingIndex = to;
+        } else {
+            for (let i = 0; i < 64; i++) {
+                const p = newBoard[i];
+                if (p && p.type === 'king' && p.color === color) { kingIndex = i; break; }
+            }
+        }
+        if (kingIndex === -1) continue; // no king? be defensive
+
+        // if king not attacked by opponent after the move, keep it
+        if (!isSquareAttacked(newBoard, kingIndex, opponent)) legal.push(to);
+    }
+
+    return legal;
+}

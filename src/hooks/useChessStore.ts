@@ -4,7 +4,7 @@ import type { Color, Piece } from "../types/piece";
 // audio for moves
 import moveSoundSrc from '../assets/chess-move.mp3';
 import { fenToBoard } from "../utils/utils";
-import { getCol, getRow, handleBishopMoves, handleKingMoves, handleKnightMoves, handlePawnMoves, handleQueenMoves, handleRockMoves, inBounds } from "../utils/moves";
+import { getCol, getRow, handleBishopMoves, handleKingMoves, handleKnightMoves, handlePawnMoves, handleQueenMoves, handleRockMoves, inBounds, filterLegalMoves, isSquareAttacked } from "../utils/moves";
 
 // cached audio element (module-scoped to avoid attaching to hook)
 let moveAudio: HTMLAudioElement | null = null;
@@ -14,6 +14,8 @@ interface ChessStore {
     board: (Piece | null)[];
     selectedSquare: number | null;
     currentTurn: Color;
+    isGameOver?: boolean;
+    winner?: Color | null;
     startGame: () => void;
     stopGame: () => void;
     selectSquare: (index: number | null) => void;
@@ -29,12 +31,16 @@ const initialEmptyBoard = (): (Piece | null)[] => Array.from({ length: 64 }, () 
 
 export const useChessStore = create<ChessStore>()((set, get) => ({
     isGameStarted: false,
+    isGameOver: false,
+    winner: null,
     board: initialEmptyBoard(),
     selectedSquare: null,
     currentTurn: "white" as Color,
     startGame: () => {
         set({
             isGameStarted: true,
+            isGameOver: false,
+            winner: null,
             board:fenToBoard(STARTING_FEN),
             selectedSquare: null,
             currentTurn: "white"
@@ -67,8 +73,8 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
         const newBoard = board.slice();
         newBoard[to] = piece;
         newBoard[from] = null;
-        const nextTurn: Color = get().currentTurn === 'white' ? 'black' : 'white';
-        set({ board: newBoard, selectedSquare: null, currentTurn: nextTurn });
+    const nextTurn: Color = get().currentTurn === 'white' ? 'black' : 'white';
+    set({ board: newBoard, selectedSquare: null, currentTurn: nextTurn });
 
         // play sound: reuse Audio element to avoid reloading
         try {
@@ -80,6 +86,34 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
             moveAudio.play().catch(() => { /* ignore autoplay errors */ });
         } catch {
             // ignore audio errors
+        }
+
+        // after the move, check for checkmate against the player to move (nextTurn)
+        try {
+            const state = get();
+            const boardAfter = state.board;
+            const opponent: Color = nextTurn;
+            // find opponent king
+            const kingIndex = boardAfter.findIndex(p => p && p.type === 'king' && p.color === opponent);
+            if (kingIndex !== -1) {
+                const inCheck = isSquareAttacked(boardAfter, kingIndex, opponent === 'white' ? 'black' : 'white');
+                if (inCheck) {
+                    // check if opponent has any legal move
+                    let hasAny = false;
+                    for (let i = 0; i < 64; i++) {
+                        const p = boardAfter[i];
+                        if (!p || p.color !== opponent) continue;
+                        const moves = state.legalMovesFrom(i);
+                        if (moves.length > 0) { hasAny = true; break; }
+                    }
+                    if (!hasAny) {
+                        // checkmate: current mover (piece.color) wins
+                        set({ isGameOver: true, winner: piece.color });
+                    }
+                }
+            }
+        } catch {
+            // defensive: don't break game if checkmate detection errors
         }
     },
 
@@ -126,8 +160,10 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
                 break;
         }
 
-        // remove duplicates and ensure in bounds
-        return Array.from(new Set(moves)).filter(inBounds);
+    // remove duplicates and ensure in bounds
+    const unique = Array.from(new Set(moves)).filter(inBounds);
+    // filter moves that would leave king in check
+    return filterLegalMoves(board, index, unique);
     }
 
 }))

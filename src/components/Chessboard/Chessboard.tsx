@@ -5,7 +5,7 @@ import './Chessboard.css'
 
 export default function Chessboard() {
 
-    const {isGameStarted} = useChessStore();
+    const {isGameStarted, isGameOver, winner} = useChessStore();
 
 
     const renderSquare = (i: number) => {
@@ -14,8 +14,6 @@ export default function Chessboard() {
             key={i}
             index={meta.index}
             coord={meta.coord}
-            file={meta.file}
-            rank={meta.rank}
             isDarkSquare={meta.isDarkSquare}
         />
     }
@@ -24,10 +22,14 @@ export default function Chessboard() {
 
     return <div className="chessboard-container">
         
-        {!isGameStarted && 
+        {(!isGameStarted || isGameOver) && 
             <div className="start-game-button" onClick={globalStartGame}>
                 Start new game
             </div>
+        }
+
+        {isGameOver &&
+            <div className="resume">The {winner} win the game!</div>
         }
 
         {isGameStarted && 
