@@ -86,7 +86,7 @@ export const handleQueenMoves = (index: number, piece: Piece, board: (Piece| nul
     return moves;
 }
 
-export const handleKingMoves = (index: number, piece: Piece, board: (Piece| null )[], moves: number[]) => {
+export const handleKingMoves = (index: number, piece: Piece, board: (Piece| null )[], moves: number[], kingMoved = false, rookAMoved = false, rookHMoved = false) => {
     // king moves: one step in any of the 8 directions
     const directions = [-9, -8, -7, -1, 1, 7, 8, 9];
     for (const d of directions) {
@@ -98,6 +98,40 @@ export const handleKingMoves = (index: number, piece: Piece, board: (Piece| null
         if ((d === -9 || d === -7 || d === 7 || d === 9) && Math.abs(getCol(t) - getCol(t - d)) !== 1) continue;
         // use helper to push if empty or enemy (it will not push own-color)
         pushIfEnemyOrEmpty(t, piece, board, moves);
+    }
+    // castling: allow if king and rook are on their starting squares, path empty and not under attack
+    // determine initial positions based on color
+    const isWhite = piece.color === 'white';
+    const kingStart = isWhite ? 60 : 4;
+    const rookA = isWhite ? 56 : 0; // queenside rook
+    const rookH = isWhite ? 63 : 7; // kingside rook
+    const opponent = isWhite ? 'black' : 'white';
+
+    // only allow castling if king is on its starting square and hasn't moved
+    if (index === kingStart && !kingMoved) {
+        // kingside
+        const betweenK = [index + 1, index + 2];
+        const rookK = board[rookH];
+        if (rookK && rookK.color === piece.color && !rookHMoved) {
+            // squares between must be empty
+            if (betweenK.every(i => inBounds(i) && board[i] === null)) {
+                // king not currently in check and squares it moves through not attacked
+                const squaresToCheck = [index, index + 1, index + 2];
+                const safe = squaresToCheck.every(s => !isSquareAttacked(board, s, opponent));
+                if (safe) moves.push(index + 2);
+            }
+        }
+
+        // queenside
+    const betweenQ = [index - 1, index - 2, index - 3];
+    const rookQ = board[rookA];
+    if (rookQ && rookQ.color === piece.color && !rookAMoved) {
+            if (betweenQ.every(i => inBounds(i) && board[i] === null)) {
+                const squaresToCheck = [index, index - 1, index - 2];
+                const safe = squaresToCheck.every(s => !isSquareAttacked(board, s, opponent));
+                if (safe) moves.push(index - 2);
+            }
+        }
     }
     return moves;
 }

@@ -16,6 +16,12 @@ interface ChessStore {
     currentTurn: Color;
     isGameOver?: boolean;
     winner?: Color | null;
+    whiteKingMoved?: boolean;
+    whiteRookAMoved?: boolean;
+    whiteRookHMoved?: boolean;
+    blackKingMoved?: boolean;
+    blackRookAMoved?: boolean;
+    blackRookHMoved?: boolean;
     startGame: () => void;
     stopGame: () => void;
     selectSquare: (index: number | null) => void;
@@ -33,6 +39,12 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
     isGameStarted: false,
     isGameOver: false,
     winner: null,
+    whiteKingMoved: false,
+    whiteRookAMoved: false,
+    whiteRookHMoved: false,
+    blackKingMoved: false,
+    blackRookAMoved: false,
+    blackRookHMoved: false,
     board: initialEmptyBoard(),
     selectedSquare: null,
     currentTurn: "white" as Color,
@@ -41,6 +53,12 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
             isGameStarted: true,
             isGameOver: false,
             winner: null,
+            whiteKingMoved: false,
+            whiteRookAMoved: false,
+            whiteRookHMoved: false,
+            blackKingMoved: false,
+            blackRookAMoved: false,
+            blackRookHMoved: false,
             board:fenToBoard(STARTING_FEN),
             selectedSquare: null,
             currentTurn: "white"
@@ -57,7 +75,10 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
     },
 
     resetBoard: () => {
-        set({ board: fenToBoard(STARTING_FEN), selectedSquare: null, currentTurn: 'white' });
+        set({ board: fenToBoard(STARTING_FEN), selectedSquare: null, currentTurn: 'white',
+            whiteKingMoved: false, whiteRookAMoved: false, whiteRookHMoved: false,
+            blackKingMoved: false, blackRookAMoved: false, blackRookHMoved: false
+        });
     },
 
     selectSquare: (index: number | null) => {
@@ -73,8 +94,45 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
         const newBoard = board.slice();
         newBoard[to] = piece;
         newBoard[from] = null;
-    const nextTurn: Color = get().currentTurn === 'white' ? 'black' : 'white';
-    set({ board: newBoard, selectedSquare: null, currentTurn: nextTurn });
+    const updates: Partial<ChessStore> = {};
+        // handle castling rook move: king moves two squares
+        if (piece.type === 'king' && Math.abs(to - from) === 2) {
+            const isWhite = piece.color === 'white';
+            // kingside
+            if (to > from) {
+                const rookFrom = isWhite ? 63 : 7;
+                const rookTo = to - 1;
+                newBoard[rookTo] = newBoard[rookFrom];
+                newBoard[rookFrom] = null;
+                // mark rook as moved
+                if (isWhite) updates.whiteRookHMoved = true; else updates.blackRookHMoved = true;
+            } else {
+                // queenside
+                const rookFrom = isWhite ? 56 : 0;
+                const rookTo = to + 1;
+                newBoard[rookTo] = newBoard[rookFrom];
+                newBoard[rookFrom] = null;
+                if (isWhite) updates.whiteRookAMoved = true; else updates.blackRookAMoved = true;
+            }
+            // mark king moved
+            if (piece.color === 'white') updates.whiteKingMoved = true; else updates.blackKingMoved = true;
+        }
+        // if a rook moved normally, mark it
+        if (piece.type === 'rock') {
+            if (from === 56) updates.whiteRookAMoved = true;
+            if (from === 63) updates.whiteRookHMoved = true;
+            if (from === 0) updates.blackRookAMoved = true;
+            if (from === 7) updates.blackRookHMoved = true;
+        }
+        // if a king moved normally, mark it
+        if (piece.type === 'king') {
+            if (piece.color === 'white') updates.whiteKingMoved = true; else updates.blackKingMoved = true;
+        }
+        const nextTurn: Color = get().currentTurn === 'white' ? 'black' : 'white';
+        updates.board = newBoard;
+        updates.selectedSquare = null;
+        updates.currentTurn = nextTurn;
+        set(updates);
 
         // play sound: reuse Audio element to avoid reloading
         try {
@@ -151,7 +209,11 @@ export const useChessStore = create<ChessStore>()((set, get) => ({
                 break;
             }
             case 'king': {
-                moves = handleKingMoves(index, piece, board,moves)
+                // pass moved flags to prevent castling if pieces have moved
+                const kingMoved = piece.color === 'white' ? get().whiteKingMoved : get().blackKingMoved;
+                const rookAMoved = piece.color === 'white' ? get().whiteRookAMoved : get().blackRookAMoved;
+                const rookHMoved = piece.color === 'white' ? get().whiteRookHMoved : get().blackRookHMoved;
+                moves = handleKingMoves(index, piece, board, moves, !!kingMoved, !!rookAMoved, !!rookHMoved)
                 break;
             }
 
